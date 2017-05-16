@@ -48,7 +48,7 @@
                          (:sending? @new-tweet))
            :label "Tweet"
            :style {:margin-top 15}
-           :on-touch-tap #(dispatch [:new-tweet/send])}]]]])))
+           :on-click #(dispatch [:new-tweet/send])}]]]])))
 
 (defn- tweets-component []
   (let [tweets (subscribe [:db/tweets])]

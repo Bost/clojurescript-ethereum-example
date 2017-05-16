@@ -19,7 +19,8 @@
 (def tweet-gas-limit 1000000)
 
 (comment
-  (dispatch [:contract/fetch-compiled-code [:contract/deploy-compiled-code]])
+  (re-frame.core/dispatch [:blockchain/unlock-account "0x4264e62a483eeb390fb60fe0f2ee48d44f9b0582" "m"])
+  (re-frame.core/dispatch [:contract/fetch-compiled-code [:contract/deploy-compiled-code]])
   (dispatch [:blockchain/unlock-account "0x6fce64667819c82a8bcbb78e294d7b444d2e1a29" "m"])
   (dispatch [:blockchain/unlock-account "0xc5aa141d3822c3368df69bfd93ef2b13d1c59aec" "m"])
   (dispatch [:blockchain/unlock-account "0xe206f52728e2c1e23de7d42d233f39ac2e748977" "m"])
@@ -64,23 +65,32 @@
   (fn [{:keys [db]} [abi]]
     (let [web3 (:web3 db)
           contract-instance (web3-eth/contract-at web3 abi (:address (:contract db)))]
-
+      (console :log contract-instance)
       {:db (assoc-in db [:contract :instance] contract-instance)
 
        :web3-fx.contract/events
-       {:instance contract-instance
+       {
+        ;; :instance contract-instance
         :db db
         :db-path [:contract :events]
-        :events [[:on-tweet-added {} {:from-block 0} :contract/on-tweet-loaded :log-error]]}
+        :events [[contract-instance
+                  :on-tweet-added {} "latest" #_(fn [] (println "lambda")) :contract/on-tweet-loaded :log-error
+                  ;; :on-tweet-added {} {:from-block 0} :contract/on-tweet-loaded :log-error
+                  ;; :on-settings-changed {} "latest" :on-settings-changed :on-settings-change-error
+                  ]
+                 ]}
 
        :web3-fx.contract/constant-fns
-       {:instance contract-instance
-        :fns [[:get-settings :contract/settings-loaded :log-error]]}})))
+       {
+        ;; :instance contract-instance
+        :fns [[contract-instance :get-settings   :contract/settings-loaded :log-error]
+              [contract-instance :on-tweet-added :contract/on-tweet-loaded :log-error]]}})))
 
 (reg-event-db
   :contract/on-tweet-loaded
   interceptors
   (fn [db [tweet]]
+    (console :log ":contract/on-tweet-added" tweet)
     (update db :tweets conj (merge (select-keys tweet [:author-address :text :name])
                                    {:date (u/big-number->date-time (:date tweet))
                                     :tweet-key (.toNumber (:tweet-key tweet))}))))
@@ -89,6 +99,7 @@
   :contract/settings-loaded
   interceptors
   (fn [db [[max-name-length max-tweet-length]]]
+    (console :log ":contract/settings-loaded" max-name-length max-tweet-length)
     (assoc db :settings {:max-name-length (.toNumber max-name-length)
                          :max-tweet-length (.toNumber max-tweet-length)})))
 
@@ -105,25 +116,30 @@
     (assoc-in db [:new-tweet key] value)))
 
 (reg-event-fx
-  :new-tweet/send
-  interceptors
-  (fn [{:keys [db]} []]
-    (let [{:keys [name text address]} (:new-tweet db)]
-      {:web3-fx.contract/state-fn
-       {:instance (:instance (:contract db))
-        :web3 (:web3 db)
-        :db-path [:contract :send-tweet]
-        :fn [:add-tweet name text
-             {:from address
-              :gas tweet-gas-limit}
-             :new-tweet/confirmed
-             :log-error
-             :new-tweet/transaction-receipt-loaded]}})))
+ :new-tweet/send
+ interceptors
+ (fn [{:keys [db]} []]
+   (let [{:keys [name text address]} (:new-tweet db)]
+     (let [web3 (:web3 db)
+           contract-instance (->> db :contract :instance)]
+       (console :log ":new-tweet/send" (->> db :contract :instance))
+       #_(console :log ":new-tweet/send" contract-instance)
+       {:web3-fx.contract/state-fns
+        {:web3 web3
+         :db-path [:contract :send-tweet]
+         :fns [[contract-instance
+                :add-tweet name text
+                {:from address
+                 :gas tweet-gas-limit}
+                [:new-tweet/confirmed]
+                :log-error
+                [:new-tweet/transaction-receipt-loaded]]]}}))))
 
 (reg-event-db
   :new-tweet/confirmed
   interceptors
   (fn [db [transaction-hash]]
+    (println ":new-tweet/confirmed" "transaction-hash" transaction-hash)
     (assoc-in db [:new-tweet :sending?] true)))
 
 (reg-event-db
@@ -151,7 +167,8 @@
   :contract/deploy-compiled-code
   interceptors
   (fn [{:keys [db]} [contracts]]
-    (let [{:keys [abi bin]} (get-in contracts [:contracts (keyword (:name (:contract db)))])]
+    (let [{:keys [abi bin]} (get-in contracts [:contracts
+                                               (keyword (:name (:contract db)))])]
       {:web3-fx.blockchain/fns
        {:web3 (:web3 db)
         :fns [[web3-eth/contract-new

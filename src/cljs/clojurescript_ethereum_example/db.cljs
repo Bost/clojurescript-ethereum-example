@@ -6,8 +6,8 @@
    :settings {}
    :my-addresses []
    :accounts {}
-   :new-tweet {:text ""
-               :name ""
+   :new-tweet {:text "Jim Jones"
+               :name "EtherTweet"
                :address nil
                :sending? false}
    :web3 (or (aget js/window "web3")

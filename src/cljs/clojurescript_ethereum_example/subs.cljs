@@ -1,5 +1,5 @@
 (ns clojurescript-ethereum-example.subs
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub console]]))
 
 (reg-sub
   :db/my-addresses
@@ -9,6 +9,7 @@
 (reg-sub
   :db/tweets
   (fn [db]
+    #_(console :log ":db/tweets" db (:tweets db))
     (sort-by :date #(compare %2 %1) (:tweets db))))
 
 (reg-sub

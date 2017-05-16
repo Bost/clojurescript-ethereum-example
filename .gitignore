@@ -1,9 +1,12 @@
-/*.log
 /target
-/*-init.clj
-/resources/public/js/compiled
-out
-/figwheel_server.log
-/.idea/
 /.nrepl-port
+figwheel_server.log
+.lein-repl-history
+resources/public/js/
+*.html
+!index.html
 /clojurescript-ethereum-example.iml
+
+# editor backup files
+*~
+/TAGS
