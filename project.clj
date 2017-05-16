@@ -2,7 +2,7 @@
   :dependencies [[bk/ring-gzip "0.2.1"]
                  [cljs-ajax "0.6.0"]
                  [cljs-react-material-ui "0.2.43"]
-                 [cljs-web3 "0.18.4-1"]
+                 [cljs-web3 "0.19.0-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/react-flexbox-grid "1.0.0-0" :exclusions [cljsjs/react]]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
