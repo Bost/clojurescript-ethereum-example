@@ -2,7 +2,7 @@
 /.nrepl-port
 figwheel_server.log
 .lein-repl-history
-resources/public/js/
+resources/public/js/compiled
 *.html
 !index.html
 /clojurescript-ethereum-example.iml
