@@ -12,11 +12,11 @@
        {:value selected-address
         :on-change #(dispatch (conj dispatch-vec %3))
         :disabled no-addresses?
-        :style {:text-align :left}
+        :style {:text-align :left :width "440px"}
         :floating-label-text (if no-addresses? "No Accounts Connected" "Choose your account")}
        props)
      (for [address addresses]
        [ui/menu-item
         {:value address
          :key address
-         :primary-text (u/truncate address 25)}])]))
+         :primary-text address #_(u/truncate address 25)}])]))

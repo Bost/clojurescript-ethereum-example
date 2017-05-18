@@ -19,8 +19,13 @@
 (def tweet-gas-limit 1000000)
 
 (comment
-  (re-frame.core/dispatch [:blockchain/unlock-account "0x4264e62a483eeb390fb60fe0f2ee48d44f9b0582" "m"])
-  (re-frame.core/dispatch [:contract/fetch-compiled-code [:contract/deploy-compiled-code]])
+  (do
+    (clojurescript-ethereum-example.core/-main)
+    (figwheel-sidecar.repl-api/start-figwheel! (figwheel-sidecar.config/fetch-config))
+    (figwheel-sidecar.repl-api/cljs-repl))
+  (do
+    (re-frame.core/dispatch [:blockchain/unlock-account "0x4264e62a483eeb390fb60fe0f2ee48d44f9b0582" "m"])
+    (re-frame.core/dispatch [:contract/fetch-compiled-code [:contract/deploy-compiled-code]]))
   (dispatch [:blockchain/unlock-account "0x6fce64667819c82a8bcbb78e294d7b444d2e1a29" "m"])
   (dispatch [:blockchain/unlock-account "0xc5aa141d3822c3368df69bfd93ef2b13d1c59aec" "m"])
   (dispatch [:blockchain/unlock-account "0xe206f52728e2c1e23de7d42d233f39ac2e748977" "m"])
@@ -60,31 +65,37 @@
       :dispatches [:blockchain/balance-loaded :log-error]}}))
 
 (reg-event-fx
-  :contract/abi-loaded
-  interceptors
-  (fn [{:keys [db]} [abi]]
-    (let [web3 (:web3 db)
-          contract-instance (web3-eth/contract-at web3 abi (:address (:contract db)))]
-      (console :log contract-instance)
-      {:db (assoc-in db [:contract :instance] contract-instance)
+ :contract/abi-loaded
+ interceptors
+ (fn [{:keys [db]} [abi contract]]
+   (let [web3 (:web3 db)
+         contract-instance (web3-eth/contract-at web3 abi (:address (:contract db)))]
+     (console :log ":contract/abi-loaded" "contract-instance" contract-instance)
+     {:db (assoc-in db [:contract :instance] contract-instance)
 
-       :web3-fx.contract/events
-       {
-        ;; :instance contract-instance
-        :db db
-        :db-path [:contract :events]
-        :events [[contract-instance
-                  :on-tweet-added {} "latest" #_(fn [] (println "lambda")) :contract/on-tweet-loaded :log-error
-                  ;; :on-tweet-added {} {:from-block 0} :contract/on-tweet-loaded :log-error
-                  ;; :on-settings-changed {} "latest" :on-settings-changed :on-settings-change-error
-                  ]
-                 ]}
+      :web3-fx.contract/events
+      {;; :instance contract-instance
+       :db db
+       :db-path [:contract :events]
+       :events
+       [[contract-instance :on-tweet-added {} {:from-block 0} [:contract/printhw :contract/on-tweet-loaded] :log-error]
+        [contract-instance :printhw {} {:from-block 0} :contract/printhw :log-error
+         ]
+        ]}
 
-       :web3-fx.contract/constant-fns
-       {
-        ;; :instance contract-instance
-        :fns [[contract-instance :get-settings   :contract/settings-loaded :log-error]
-              [contract-instance :on-tweet-added :contract/on-tweet-loaded :log-error]]}})))
+      :web3-fx.contract/constant-fns
+      {;; :instance contract-instance
+       :fns [[contract :get-settings [:contract/settings-loaded] :log-error]]}
+      })))
+
+(reg-event-db
+ :contract/printhw
+ interceptors
+ (fn [db [tweet]]
+   (console :log ":contract/printhw" tweet)
+   #_(update db :tweets conj (merge (select-keys tweet [:author-address :text :name])
+                                  {:date (u/big-number->date-time (:date tweet))
+                                   :tweet-key (.toNumber (:tweet-key tweet))}))))
 
 (reg-event-db
   :contract/on-tweet-loaded
@@ -139,14 +150,14 @@
   :new-tweet/confirmed
   interceptors
   (fn [db [transaction-hash]]
-    (println ":new-tweet/confirmed" "transaction-hash" transaction-hash)
+    (console :log ":new-tweet/confirmed" "transaction-hash" transaction-hash)
     (assoc-in db [:new-tweet :sending?] true)))
 
 (reg-event-db
   :new-tweet/transaction-receipt-loaded
   interceptors
   (fn [db [{:keys [gas-used] :as transaction-receipt}]]
-    (console :log transaction-receipt)
+    (console :log ":new-tweet/transaction-receipt-loaded" transaction-receipt)
     (when (= gas-used tweet-gas-limit)
       (console :error "All gas used"))
     (assoc-in db [:new-tweet :sending?] false)))
@@ -201,7 +212,7 @@
   interceptors
   (fn [_ [contract-instance]]
     (when-let [address (aget contract-instance "address")]
-      (console :log "Contract deployed at" address))))
+      (console :log "Contract deployed at address" address))))
 
 (reg-event-fx
   :log-error

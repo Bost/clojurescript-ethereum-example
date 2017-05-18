@@ -1,8 +1,8 @@
 (defproject clojurescript-ethereum-example "0.1.0-SNAPSHOT"
   :dependencies [[bk/ring-gzip "0.2.1"]
                  [cljs-ajax "0.6.0"]
-                 [cljs-react-material-ui "0.2.43"]
-                 [cljs-web3 "0.19.0-0"]
+                 [cljs-react-material-ui "0.2.44"]
+                 [cljs-web3 "0.19.0-1"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/react-flexbox-grid "1.0.0-0" :exclusions [cljsjs/react]]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
@@ -10,22 +10,22 @@
                  [day8.re-frame/http-fx "0.1.3"]
                  [environ "1.1.0"]
                  [http-kit "2.2.0"]
-                 [madvas.re-frame/web3-fx "0.1.5-1"]
+                 [madvas.re-frame/web3-fx "0.1.6-2"]
                  [medley "1.0.0"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.542"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.9.2"]
+                 [re-frame "0.9.3"]
                  [reagent "0.6.1" :exclusions [cljsjs/react]]
                  [ring.middleware.logger "0.5.0"]
                  [ring/ring-core "1.6.1"]
                  [ring/ring-defaults "0.3.0"]
                  [ring/ring-devel "1.6.1"]]
 
-  :plugins [[lein-auto "0.1.2"]
-            [lein-cljsbuild "1.1.4"]
+  :plugins [[lein-auto "0.1.3"]
+            [lein-cljsbuild "1.1.6"]
             [lein-shell "0.5.0"]
-            [deraen/lein-less4j "0.5.0"]]
+            [deraen/lein-less4j "0.6.2"]]
 
   :min-lein-version "2.5.3"
   :main clojurescript-ethereum-example.core
@@ -59,7 +59,7 @@
                    [com.cemerick/piggieback "0.2.1"]
                    [figwheel-sidecar "0.5.10"]
                    [org.clojure/tools.nrepl "0.2.13"]]
-    :plugins [[lein-figwheel "0.5.8"]]
+    :plugins [[lein-figwheel "0.5.10"]]
     :source-paths ["env/dev"]
     :cljsbuild {:builds [{:id "dev"
                           :source-paths ["src/cljs"]

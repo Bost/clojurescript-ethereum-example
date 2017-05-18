@@ -22,14 +22,14 @@
          [ui/text-field {:default-value (:name @new-tweet)
                          :on-change #(dispatch [:new-tweet/update :name (u/evt-val %)])
                          :name "name"
-                         :max-length (:max-name-length @settings)
+                         ;; :max-length (:max-name-length @settings)
                          :floating-label-text "Your Name"
                          :style {:width "100%"}}]
          [:br]
          [ui/text-field {:default-value (:text @new-tweet)
                          :on-change #(dispatch [:new-tweet/update :text (u/evt-val %)])
                          :name "tweet"
-                         :max-length (:max-tweet-length @settings)
+                         ;; :max-length (:max-tweet-length @settings)
                          :floating-label-text "What's happening?"
                          :style {:width "100%"}}]
          [:br]
