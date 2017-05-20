@@ -16,6 +16,7 @@ geth attach ipc:/$ethdir/geth.ipc
 loadScript('resources/public/js/CoinTransfer1.js');
 tokenCompiled
 loadScript('resources/public/js/CoinTransfer2.js');
+# wait
 loadScript('resources/public/js/CoinTransfer3.js');
 ```
 

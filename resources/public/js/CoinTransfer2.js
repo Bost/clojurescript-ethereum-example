@@ -4,7 +4,7 @@ var supply = 10000;
 var tokenContract = web3.eth.contract(tokenCompiled[path].info.abiDefinition);
 
 var src = eth.accounts[0];
-personal.unlockAccount(src, "m");
+web3.personal.unlockAccount(src, "m");
 
 var token = tokenContract.new(
     supply,
