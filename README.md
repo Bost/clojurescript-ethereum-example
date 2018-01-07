@@ -12,16 +12,17 @@ Deployed at:
 ```
 set ethdir "/media/bost/usb-drive/eth-devnet"
 geth --dev --maxpeers 0 --port 30304 --shh --rpc --rpcport 8545 --keystore devnet --datadir $ethdir --minerthreads 1 --rpccorsdomain "*" --rpcapi "eth,net,web3,personal,shh"
+
+set ethdir "/media/bost/usb-drive/eth-devnet"
 geth attach ipc:/$ethdir/geth.ipc
-loadScript('resources/public/js/CoinTransfer1.js');
-tokenCompiled
-loadScript('resources/public/js/CoinTransfer2.js');
+miner.start();
 # wait
-loadScript('resources/public/js/CoinTransfer3.js');
+loadScript('resources/public/js/checkAllBalances.js');
+# miner.stop()
 ```
 
 ```
-etc.coinbase
+eth.coinbase
 personal.newAccount("m")
 eth.accounts
 web3.fromWei(eth.getBalance(eth.coinbase), "ether")

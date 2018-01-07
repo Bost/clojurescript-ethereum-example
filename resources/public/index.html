@@ -5,76 +5,6 @@
         <link rel="stylesheet" href="./css/styles.css">
         <script type="text/javascript" src="js/web3.min.js"></script>
         <script type="text/javascript">
-         function addElem() {
-             nouveauDiv = document.createElement("div");
-             nouveauDiv.innerHTML = "<button onClick='sendMoney()'>send money</button>";
-
-             mon_div = document.getElementById("container");
-             document.body.insertBefore(nouveauDiv, mon_div);
-         }
-
-         var Web3 = require('web3');
-         var web3 = new Web3();
-
-         web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
-         var coinbase = web3.eth.coinbase;
-         var balance = web3.eth.getBalance(coinbase);
-         console.log("web3.eth.coinbase: "+balance.toString(10));
-
-         /*
-            contract token {
-            mapping (address => uint) public coinBalanceOf;
-            event CoinTransfer(address sender, address receiver, uint amount);
-            function token(uint supply) {
-            coinBalanceOf[msg.sender] = supply;
-            }
-            function sendCoin(address receiver, uint amount) returns(bool sufficient) {
-            if (coinBalanceOf[msg.sender] < amount) return false;
-            coinBalanceOf[msg.sender] -= amount;
-            coinBalanceOf[receiver] += amount;
-            CoinTransfer(msg.sender, receiver, amount);
-            return true;
-            }
-            }
-          */
-
-         var tokenSource = 'contract token {mapping (address => uint) public coinBalanceOf; event CoinTransfer(address sender, address receiver, uint amount); function token(uint supply) {coinBalanceOf[msg.sender] = supply;} function sendCoin(address receiver, uint amount) returns(bool sufficient) {if (coinBalanceOf[msg.sender] < amount) return false; coinBalanceOf[msg.sender] -= amount; coinBalanceOf[receiver] += amount; CoinTransfer(msg.sender, receiver, amount); return true;}}';
-
-         var tokenCompiled = web3.eth.compile.solidity(tokenSource);
-         var path;
-         for (var name in tokenCompiled) {
-             path = name;
-             /* console.log("tokenCompiled: "+name);*/
-         }
-         console.log("tokenCompiled. path: "+path);
-
-         var supply = 10000;
-         var tokenContract = web3.eth.contract(tokenCompiled[path].info.abiDefinition);
-
-         var src = web3.eth.accounts[0];
-         web3.personal.unlockAccount(src, "m");
-
-         var token = tokenContract.new(
-             supply,
-             {
-                 from: src,
-                 data: tokenCompiled[path].code,
-                 gas: 1000000
-             }, function(e, contract){
-                 if (!e) {
-                     if (!contract.address) {
-                         console.log("Contract transaction send: TxHash: " + contract.transactionHash + " waiting to be mined...");
-                     }
-                     else {
-                         console.log("Contract mined! Address: " + contract.address);
-                         addElem();
-                     }
-                 }
-                 else {
-                     console.log("ERROR: "+e);
-                 }
-             });
-
          function sendMoney() {
              var event = token.CoinTransfer({}, '', function(error, result){
                  if (!error) {
@@ -102,6 +32,53 @@
              console.log("Transaction hash: "+txhash);
              console.log("Waiting for the event 'CoinTransfer' to occure...");
          }
+         var supply = 10000 /* var of type uint256 here */ ;
+
+         function addElem() {
+             nouveauDiv = document.createElement("div");
+             nouveauDiv.innerHTML = "<button onClick='sendMoney()'>send money</button>";
+
+             mon_div = document.getElementById("container");
+             document.body.insertBefore(nouveauDiv, mon_div);
+         }
+
+         var Web3 = require('web3');
+         var web3 = new Web3();
+
+         web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
+         var coinbase = web3.eth.coinbase;
+         var balance = web3.eth.getBalance(coinbase);
+         console.log("web3.eth.coinbase: "+balance.toString(10));
+         console.log("web3.eth.coinbase: "+ web3.fromWei(balance, "ether")+" ether");
+
+         var src = web3.eth.accounts[0];
+         web3.personal.unlockAccount(src, "m");
+         console.log(src+" unlocked");
+         var supply = 10000 /* var of type uint256 here */ ;
+         var rawAbi = '[{"constant":false,"inputs":[{"name":"receiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"sendCoin","outputs":[{"name":"sufficient","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"coinBalanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"supply","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"receiver","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"CoinTransfer","type":"event"}]';
+         var abi = JSON.parse(rawAbi);
+         var tokenContract = web3.eth.contract(abi);
+         var token = tokenContract.new(
+             supply,
+             {
+                 from: src,
+                 data: '0x6060604052341561000f57600080fd5b60405160208061023583398101604052808051600160a060020a03331660009081526020819052604090205550506101e98061004c6000396000f30060606040526004361061004b5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166390b98a118114610050578063bbd39ac014610093575b600080fd5b341561005b57600080fd5b61007f73ffffffffffffffffffffffffffffffffffffffff600435166024356100d1565b604051901515815260200160405180910390f35b341561009e57600080fd5b6100bf73ffffffffffffffffffffffffffffffffffffffff600435166101ab565b60405190815260200160405180910390f35b73ffffffffffffffffffffffffffffffffffffffff331660009081526020819052604081205482901015610107575060006101a5565b73ffffffffffffffffffffffffffffffffffffffff338181166000908152602081905260408082208054879003905592861681528290208054850190557f16cdf1707799c6655baac6e210f52b94b7cec08adcaf9ede7dfe8649da92614691859085905173ffffffffffffffffffffffffffffffffffffffff9384168152919092166020820152604080820192909252606001905180910390a15060015b92915050565b600060208190529081526040902054815600a165627a7a7230582010968bb72032011f7bc7c939a8eafd06524bc33919d95cc019dac13799381da20029',
+                 gas: 1234567
+             }, function (e, contract){
+                 if (!e) {
+                     if (!contract.address) {
+                         console.log("Contract transaction sent: TxHash: " + contract.transactionHash + " waiting to be mined...");
+                     }
+                     else {
+                         console.log("Contract mined! Address: " + contract.address);
+                         addElem();
+                     }
+                 }
+                 else {
+                     console.log("ERROR: "+e);
+                 }
+             })
+
         </script>
     </head>
   <body>
